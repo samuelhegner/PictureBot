@@ -48,7 +48,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    current = dataframe
+    current = pd.DataFrame.copy(dataframe)
     user_name = message.author._user.name
     user_exists = dataframe['User'].str.contains(user_name)
     if not user_exists.empty:
