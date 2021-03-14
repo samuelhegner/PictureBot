@@ -9,12 +9,15 @@ try:
     dataframe = pd.read_csv("./data.csv")
 
 except FileNotFoundError:
-    dataframe = pd.DataFrame({'User': pd.Series([], dtype='str'),
-                              'Last Post': pd.Series([], dtype='str'),
-                              'Hot Streak': pd.Series([], dtype='int'),
-                              'Weekly Count': pd.Series([], dtype='int'),
-                              'Monthly Count': pd.Series([], dtype='int'),
-                              'All Time': pd.Series([], dtype='int')})
+    print("No file Found!")
+    newFrame = pd.DataFrame({'userName': pd.Series([], dtype='str'),
+                              'timeStamp': pd.Series([], dtype='str'),
+                              'allTime': pd.Series([], dtype='int'),
+                              'year': pd.Series([], dtype='int'),
+                              'month': pd.Series([], dtype='int'),
+                              'week': pd.Series([], dtype='int'),
+                              'streak': pd.Series([], dtype='int')})
+    print(newFrame)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -50,6 +53,7 @@ async def on_message(message):
     current = pd.DataFrame.copy(dataframe)
     user_name = message.author._user.name
     user_exists = dataframe['User'].str.contains(user_name)
+
     if not user_exists.empty:
         row = dataframe.loc[dataframe['User'] == user_name]
         dataframe.set_value('All Time', row.index, row['All Time'] + 1)

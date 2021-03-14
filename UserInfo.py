@@ -6,7 +6,7 @@ class UserInfo:
     @classmethod
     def createFromFile(cls, userName):
         row = main.dataframe.loc[main.dataframe['User'] == userName]
-        timeStamp = "timeStamp"  # get timestamp from row
+        timeStamp = ""  # get timestamp from row
         allTime = 0  # get all time posts from row
         year = 0  # get yearly posts from row
         month = 0  # get monthy posts from row
@@ -27,7 +27,7 @@ class UserInfo:
         self.week = week
         self.streak = streak
 
-    def writeToFile(self): #
+    def writeToFile(self): #add to csv or update csv value
         pass
 
     def addPost(self): #add to alltime, yearly, monthly and weekly stats
