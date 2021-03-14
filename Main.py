@@ -5,7 +5,6 @@ import pandas as pd
 
 from dotenv import load_dotenv
 
-
 try:
     dataframe = pd.read_csv("./data.csv")
 
