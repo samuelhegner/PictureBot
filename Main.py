@@ -19,20 +19,13 @@ client = discord.Client(intents=intents)
 # users.append(info) add info to the key
 # db[]
 
+
+pic_ext = ['.jpg','.png','.jpeg', '.gif']
+
+
 def update_user(user_name):
     pass
-    
 
-
-
-@client.event
-async def on_ready():
-    guild = discord.utils.get(client.guilds, name=GUILD)
-    print(f'{client.user} is connected to the following guild:\n'
-          f'{guild.name}(id: {guild.id})')
-
-    members = '\n - '.join([member.name for member in guild.members])
-    print(f'Guild Members:\n - {members}')
 
 
 @client.event
@@ -46,6 +39,44 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    print(message.channel)
+
+    await check_message(message)
+        
+
+
+async def check_message(message):
+    if len(message.attachments) != 1:
+        await warn_user_pictures_only(message.author)
+        await message.delete()
+    
+    file = message.attachments[0].filename
+
+    for ext in pic_ext:
+        if file.endswith(ext):
+            await handlePicutrePost(message.author)
+            return
+    
+    await warn_user_ext_only(message.author)
+    await message.delete()
+
+async def handlePicutrePost(author):
+    pass
+
+async def warn_user_pictures_only(author):
+    await author.create_dm()
+    await author.dm_channel.send("Please post pictures only!")
+
+
+async def warn_user_ext_only(author):
+    await author.create_dm()
+    message = "Please post pictures with the extensions: "
+    for ext in pic_ext:
+        message += ext + ", "
+    
+    message += "only!"
+
+    await author.dm_channel.send(message)
 
 keep_alive()
 client.run(TOKEN)
