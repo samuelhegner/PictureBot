@@ -1,23 +1,9 @@
 # bot.py
 import os
 import discord
-import pandas as pd
 
 from dotenv import load_dotenv
 
-try:
-    dataframe = pd.read_csv("./data.csv")
-
-except FileNotFoundError:
-    print("No file Found!")
-    newFrame = pd.DataFrame({'userName': pd.Series([], dtype='str'),
-                              'timeStamp': pd.Series([], dtype='str'),
-                              'allTime': pd.Series([], dtype='int'),
-                              'year': pd.Series([], dtype='int'),
-                              'month': pd.Series([], dtype='int'),
-                              'week': pd.Series([], dtype='int'),
-                              'streak': pd.Series([], dtype='int')})
-    print(newFrame)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -50,25 +36,5 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    current = pd.DataFrame.copy(dataframe)
-    user_name = message.author._user.name
-    user_exists = dataframe['User'].str.contains(user_name)
-
-    if not user_exists.empty:
-        row = dataframe.loc[dataframe['User'] == user_name]
-        dataframe.set_value('All Time', row.index, row['All Time'] + 1)
-    else:
-        row = pd.DataFrame([{'User': user_name, 'Last Post': 'butts', 'Hot Streak': 1, 'Weekly Count': 1,
-                            'Monthly Count': 1,
-                            'All Time': 1}])
-        with pd.option_context('display.max_rows', None, 'display.max_columns',
-                               None):  # more options can be specified also
-            print(current)
-        current = dataframe.append(row)
-
-    with pd.option_context('display.max_rows', None, 'display.max_columns',
-                           None):  # more options can be specified also
-        print(current)
-    current.to_csv("data.csv", sep=',')
 
 client.run(TOKEN)
