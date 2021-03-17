@@ -1,6 +1,8 @@
 # bot.py
 import os
 import discord
+from replit import db
+
 from keep_alive import keep_alive
 from dotenv import load_dotenv
 
@@ -11,6 +13,16 @@ GUILD = os.getenv('DISCORD_GUILD')
 intents = discord.Intents.default()
 intents.members = True
 client = discord.Client(intents=intents)
+
+# if "user_name" in db.keys(): check if key exists
+# users = db["users"] get the values at the key
+# users.append(info) add info to the key
+# db[]
+
+def update_user(user_name):
+    pass
+    
+
 
 
 @client.event
