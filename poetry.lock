@@ -173,6 +173,14 @@ werkzeug = ">=1.0.1,<2.0.0"
 
 [[package]]
 category = "main"
+description = "Job scheduling for humans."
+name = "schedule"
+optional = false
+python-versions = ">=3.6"
+version = "1.0.0"
+
+[[package]]
+category = "main"
 description = "datetime.timedelta replacement"
 name = "timedelta"
 optional = false
@@ -212,7 +220,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "71756a8034728cd5be553e7b786287bc1e2ad3b951e9a943891a8ca3d6d5c9c1"
+content-hash = "32df98ea4be1932d5176dcdca8fc773c3d5b50acff988bdac402423933658a8a"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -395,6 +403,10 @@ python-dotenv = [
 replit = [
     {file = "replit-2.0.0-py3-none-any.whl", hash = "sha256:862b49887f486a5c83eba4809b86a977378a008f1c5d53ab3c1187418194cf18"},
     {file = "replit-2.0.0.tar.gz", hash = "sha256:f6953201a5ff5b3ae29b7630fa13a87f2423f5a9afba06fc5427ee0f958c7aa7"},
+]
+schedule = [
+    {file = "schedule-1.0.0-py2.py3-none-any.whl", hash = "sha256:82369250700af61af40bbf38efc8698560aaba8fa3e58eec7209c20aa05b9d02"},
+    {file = "schedule-1.0.0.tar.gz", hash = "sha256:1654cf70860a6d4d58236c98b0f1bb71521cc2a4bbf031b6cc39c96e77d59a91"},
 ]
 timedelta = [
     {file = "timedelta-2020.12.3.tar.gz", hash = "sha256:41c28b314de9cb6e4c95fcc9f4e3ecee435f2fc821a079cd9243be4783ac4cf4"},

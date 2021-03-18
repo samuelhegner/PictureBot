@@ -1,13 +1,16 @@
 # bot.py
 import os
 import discord
-import time
 import json
+import asyncio
 
 from dotenv import load_dotenv
 from replit import db
 from keep_alive import keep_alive
 from UserInfo import UserInfo
+from multiprocessing import Process
+from discord.ext import commands, tasks
+from datetime import datetime, timedelta, time
 
 
 #-----------------------------------------------------------
@@ -37,6 +40,7 @@ intents = discord.Intents.default()
 intents.members = True
 client = discord.Client(intents=intents)
 
+
 pic_ext = ['.jpg','.png','.jpeg', '.gif']
 
 @client.event
@@ -65,29 +69,34 @@ async def check_message(message):
 
     for ext in pic_ext:
         if file.endswith(ext):
-            await handlePicutrePost(message.author)
+            await handlePicutrePost(message)
             return
     
     await warn_user_ext_only(message.author)
     await message.delete()
 
-async def handlePicutrePost(author):
+async def handlePicutrePost(message):
+    author = message.author
+
     if author.name in db.keys():
         userJsonFromDB = json.loads(db[author.name])
         userInfo = UserInfo(**userJsonFromDB)
-        userInfo.addPost()
-        userJSON = json.dumps(userInfo.__dict__)
-        db[author.name] = userJSON
-        print(userJSON)
+        if userInfo.postedToday:
+            await warn_user_daily_post(message.author)
+            await message.delete()
+        else:
+            userInfo.addPost()
+            userJSON = json.dumps(userInfo.__dict__)
+            db[author.name] = userJSON
+            print(userJSON)  
     else:
         userInfo = UserInfo(author.name, int(time.time()), 0, 0, 0, 0, 0)
         userInfo.addPost()
         userJSON = json.dumps(userInfo.__dict__) 
         db[author.name] = userJSON;
         print(userJSON)
-
-    await author.create_dm()
-    await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
+        await author.create_dm()
+        await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
 
 
 async def warn_user_pictures_only(author):
@@ -95,17 +104,38 @@ async def warn_user_pictures_only(author):
     await author.dm_channel.send("Please post pictures only!")
 
 
+async def warn_user_daily_post(author):
+    await author.create_dm()
+    await author.dm_channel.send("Please post only one picture a day!")
+
+
 async def warn_user_ext_only(author):
     await author.create_dm()
     message = "Please post pictures with the extensions: "
     for ext in pic_ext:
         message += ext + ", "
-    
     message += "only!"
-
     await author.dm_channel.send(message)
 
+@tasks.loop(hours=24)
+async def called_once_a_day():
+    keys = db.keys()
+    for key in keys:
+        userJsonFromDB = json.loads(key)
+        userInfo = UserInfo(**userJsonFromDB)
+        userInfo.dailyCheck()
+        print("Checked: " + userInfo.userName)
+    print("Reset Daily Stats")
+        
 
+@called_once_a_day.before_loop
+async def before():
+    now = datetime.now()
+    midnight = datetime.combine(now + timedelta(days=1), time())
+    secondsUntilMidnight = (midnight - now).seconds
+    await asyncio.sleep(secondsUntilMidnight)
+    print("Finished waiting")
 
+called_once_a_day.start()
 keep_alive()
 client.run(TOKEN)
