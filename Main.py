@@ -1,10 +1,33 @@
 # bot.py
 import os
 import discord
-from replit import db
+import time
+import json
 
-from keep_alive import keep_alive
 from dotenv import load_dotenv
+from replit import db
+from keep_alive import keep_alive
+from UserInfo import UserInfo
+
+
+#-----------------------------------------------------------
+#db.__delitem__("TestUser")
+#
+#Get item from DB into UserInfo obj
+#-----------------------------------------------------------
+#if "TestUser" in db.keys():
+#    print("Test User Found!")
+#    userJson = json.loads(db["TestUser"])
+#    testUser = UserInfo(**userJson)
+#    testUser.printUserInfo()
+#
+#Create and assign UserInfo obj to DB
+#------------------------------------------------------------
+#else:
+#    print("No Test User Found!")
+#    testUser = UserInfo("TestUser", int(time.time()), 0, 0, 0, 0, 0)
+#    userJSON = json.dumps(testUser.__dict__)
+#    db[testUser.userName] = userJSON;
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -14,19 +37,7 @@ intents = discord.Intents.default()
 intents.members = True
 client = discord.Client(intents=intents)
 
-# if "user_name" in db.keys(): check if key exists
-# users = db["users"] get the values at the key
-# users.append(info) add info to the key
-# db[]
-
-
 pic_ext = ['.jpg','.png','.jpeg', '.gif']
-
-
-def update_user(user_name):
-    pass
-
-
 
 @client.event
 async def on_member_join(member):
@@ -36,10 +47,9 @@ async def on_member_join(member):
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
+    
+    if message.author == client.user or message.channel.id !=  821781619106381874:
         return
-
-    print(message.channel)
 
     await check_message(message)
         
@@ -49,6 +59,7 @@ async def check_message(message):
     if len(message.attachments) != 1:
         await warn_user_pictures_only(message.author)
         await message.delete()
+        return
     
     file = message.attachments[0].filename
 
@@ -61,7 +72,23 @@ async def check_message(message):
     await message.delete()
 
 async def handlePicutrePost(author):
-    pass
+    if author.name in db.keys():
+        userJsonFromDB = json.loads(db[author.name])
+        userInfo = UserInfo(**userJsonFromDB)
+        userInfo.addPost()
+        userJSON = json.dumps(userInfo.__dict__)
+        db[author.name] = userJSON
+        print(userJSON)
+    else:
+        userInfo = UserInfo(author.name, int(time.time()), 0, 0, 0, 0, 0)
+        userInfo.addPost()
+        userJSON = json.dumps(userInfo.__dict__) 
+        db[author.name] = userJSON;
+        print(userJSON)
+
+    await author.create_dm()
+    await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
+
 
 async def warn_user_pictures_only(author):
     await author.create_dm()
@@ -77,6 +104,8 @@ async def warn_user_ext_only(author):
     message += "only!"
 
     await author.dm_channel.send(message)
+
+
 
 keep_alive()
 client.run(TOKEN)

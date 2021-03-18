@@ -1,23 +1,7 @@
-import Main as main
-
+import time
+import timedelta
 
 class UserInfo:
-
-    @classmethod
-    def createFromFile(cls, userName):
-        row = main.dataframe.loc[main.dataframe['User'] == userName]
-        timeStamp = ""  # get timestamp from row
-        allTime = 0  # get all time posts from row
-        year = 0  # get yearly posts from row
-        month = 0  # get monthy posts from row
-        week = 0  # get weekly posts by
-        streak = 0  # get streak from row
-        return cls(userName, timeStamp, allTime, year, month, week, streak)
-
-    @classmethod
-    def createNew(cls, userName, timeStamp, allTime, year, month, week, streak):
-        return cls(userName, timeStamp, allTime, year, month, week, streak)
-
     def __init__(self, userName, timeStamp, allTime, year, month, week, streak):
         self.userName = userName
         self.timeStamp = timeStamp
@@ -27,14 +11,20 @@ class UserInfo:
         self.week = week
         self.streak = streak
 
-    def writeToFile(self): #add to csv or update csv value
-        pass
-
     def addPost(self): #add to alltime, yearly, monthly and weekly stats
-        pass
+        self.timeStamp = int(time.time())
+        self.allTime += 1
+        self.year += 1
+        self.month += 1
+        self.week += 1
+        self.setStreak(1)
 
-    def setStreak(self, postedToday): #set the streak, based on whether the used posted a picture today
-        pass
-
+    def setStreak(self, toAdd): #set the streak
+        self.streak += toAdd #temp add, actual code to come!!
+        
     def postedToday(self): #bool to check if the user posted this day
-        pass
+        dayAgo = time.time - timedelta(hours=24)
+        return (dayAgo <= self.timeStamp <= time.time)
+
+    def printUserInfo(self):
+        print(self.__dict__)
