@@ -1,5 +1,5 @@
-import time
-import timedelta
+from datetime import datetime, timedelta, time
+
 
 
 class UserInfo:
@@ -16,7 +16,7 @@ class UserInfo:
 
 
     def addPost(self):  #add to alltime, yearly, monthly and weekly stats
-        self.timeStamp = int(time.time())
+        self.timeStamp = datetime.now().timestamp()
         self.allTime += 1
         self.year += 1
         self.month += 1
@@ -52,8 +52,11 @@ class UserInfo:
 
 
     def postedToday(self):
-        dayAgo = time.time - timedelta(hours=24)
-        return (dayAgo <= self.timeStamp <= time.time)
+        now = int(datetime.now().timestamp())
+        postedHoursAgo =  int((now - self.timeStamp)/60/60)
+        print(self.userName + " posted " + str(postedHoursAgo) + " hours ago")
+        print(postedHoursAgo < 24)
+        return postedHoursAgo < 24
 
 
     def printUserInfo(self):

@@ -8,9 +8,12 @@ from dotenv import load_dotenv
 from replit import db
 from keep_alive import keep_alive
 from UserInfo import UserInfo
-from multiprocessing import Process
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta, time
+
+
+
+
 
 
 #-----------------------------------------------------------
@@ -40,8 +43,9 @@ intents = discord.Intents.default()
 intents.members = True
 client = discord.Client(intents=intents)
 
-
 pic_ext = ['.jpg','.png','.jpeg', '.gif']
+
+
 
 @client.event
 async def on_member_join(member):
@@ -81,7 +85,8 @@ async def handlePicutrePost(message):
     if author.name in db.keys():
         userJsonFromDB = json.loads(db[author.name])
         userInfo = UserInfo(**userJsonFromDB)
-        if userInfo.postedToday:
+        print(userInfo.postedToday())
+        if (userInfo.postedToday() == True):
             await warn_user_daily_post(message.author)
             await message.delete()
         else:
@@ -93,7 +98,7 @@ async def handlePicutrePost(message):
         userInfo = UserInfo(author.name, int(time.time()), 0, 0, 0, 0, 0)
         userInfo.addPost()
         userJSON = json.dumps(userInfo.__dict__) 
-        db[author.name] = userJSON;
+        db[author.name] = userJSON
         print(userJSON)
         await author.create_dm()
         await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
@@ -117,14 +122,16 @@ async def warn_user_ext_only(author):
     message += "only!"
     await author.dm_channel.send(message)
 
-@tasks.loop(hours=24)
+@tasks.loop(minutes=1)
 async def called_once_a_day():
     keys = db.keys()
     for key in keys:
-        userJsonFromDB = json.loads(key)
+        userJsonFromDB = json.loads(db[key])
         userInfo = UserInfo(**userJsonFromDB)
         userInfo.dailyCheck()
         print("Checked: " + userInfo.userName)
+        userJSON = json.dumps(userInfo.__dict__)
+        db[key] = userJSON
     print("Reset Daily Stats")
         
 
@@ -136,6 +143,25 @@ async def before():
     await asyncio.sleep(secondsUntilMidnight)
     print("Finished waiting")
 
+
+def clearDB():
+    keys = db.keys()
+    for key in keys:
+        del db[key]
+        
+
+def printDB():
+    print("-----------------------------------------------------")
+    keys = db.keys()
+    for key in keys:
+        userJsonFromDB = json.loads(db[key])
+        userInfo = UserInfo(**userJsonFromDB)
+        userInfo.printUserInfo()
+        print("-----------------------------------------------------")
+
 called_once_a_day.start()
 keep_alive()
 client.run(TOKEN)
+
+
+
