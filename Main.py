@@ -11,57 +11,47 @@ from UserInfo import UserInfo
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta, time
 
-
-
-
-
-
-#-----------------------------------------------------------
-#db.__delitem__("TestUser")
-#
-#Get item from DB into UserInfo obj
-#-----------------------------------------------------------
-#if "TestUser" in db.keys():
-#    print("Test User Found!")
-#    userJson = json.loads(db["TestUser"])
-#    testUser = UserInfo(**userJson)
-#    testUser.printUserInfo()
-#
-#Create and assign UserInfo obj to DB
-#------------------------------------------------------------
-#else:
-#    print("No Test User Found!")
-#    testUser = UserInfo("TestUser", int(time.time()), 0, 0, 0, 0, 0)
-#    userJSON = json.dumps(testUser.__dict__)
-#    db[testUser.userName] = userJSON;
-
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
 
 intents = discord.Intents.default()
 intents.members = True
-client = discord.Client(intents=intents)
+
+bot = commands.Bot(command_prefix='&')
 
 pic_ext = ['.jpg','.png','.jpeg', '.gif']
 
+todaysPosters = []
+
+@bot.command(name="me")
+async def showIndividualStats(ctx):
+    if ctx.author.name in db.keys():
+        userJsonFromDB = json.loads(db[ctx.author.name])
+        userInfo = UserInfo(**userJsonFromDB)
+
+        message = "User: {}\nLast Post: {}\nAll-time Posts: {}\nPosts this year: {}\nPosts this month: {}\nPosts this week: {}\nYour streak: {} days".format(userInfo.userName, datetime.fromtimestamp(userInfo.timeStamp).strftime('%H:%M:%S on %d-%m-%Y'), userInfo.allTime, userInfo.year, userInfo.month, userInfo.week, userInfo.streak)
+    else:
+        message = "You are yet to post a picture. Now is your chance :smiley:"
+    await ctx.send(message)
+
+@bot.event
+async def on_ready():
+    print("Bot is ready")
 
 
-@client.event
+@bot.event
 async def on_member_join(member):
     await member.create_dm()
     await member.dm_channel.send(f'Hi {member.name}, welcome to Daily Pics!')
 
 
-@client.event
+@bot.event
 async def on_message(message):
-    
-    if message.author == client.user or message.channel.id !=  821781619106381874:
+    await bot.process_commands(message)
+    if message.author == bot.user or message.channel.id !=  821781619106381874:
         return
 
     await check_message(message)
-        
-
 
 async def check_message(message):
     if len(message.attachments) != 1:
@@ -95,7 +85,7 @@ async def handlePicutrePost(message):
             db[author.name] = userJSON
             print(userJSON)  
     else:
-        userInfo = UserInfo(author.name, int(time.time()), 0, 0, 0, 0, 0)
+        userInfo = UserInfo(author.name, int(datetime.now().timestamp()), 0, 0, 0, 0, 0)
         userInfo.addPost()
         userJSON = json.dumps(userInfo.__dict__) 
         db[author.name] = userJSON
@@ -122,16 +112,20 @@ async def warn_user_ext_only(author):
     message += "only!"
     await author.dm_channel.send(message)
 
-@tasks.loop(minutes=1)
+@tasks.loop(hours=24)
 async def called_once_a_day():
     keys = db.keys()
     for key in keys:
         userJsonFromDB = json.loads(db[key])
         userInfo = UserInfo(**userJsonFromDB)
+        if userInfo.postedToday():
+            todaysPosters.append(userInfo.userName)
         userInfo.dailyCheck()
         print("Checked: " + userInfo.userName)
         userJSON = json.dumps(userInfo.__dict__)
         db[key] = userJSON
+    
+    await announceDailyPosters()
     print("Reset Daily Stats")
         
 
@@ -159,9 +153,16 @@ def printDB():
         userInfo.printUserInfo()
         print("-----------------------------------------------------")
 
+async def announceDailyPosters():
+    message = "Todays posters: "
+    for user in todaysPosters:
+        message += str(user) + ", "
+    
+    channel = bot.get_channel(821781619106381874)
+    await channel.send(message)
+    todaysPosters.clear()
+
+
 called_once_a_day.start()
 keep_alive()
-client.run(TOKEN)
-
-
-
+bot.run(TOKEN)

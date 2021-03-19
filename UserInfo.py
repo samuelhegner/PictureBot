@@ -16,7 +16,7 @@ class UserInfo:
 
 
     def addPost(self):  #add to alltime, yearly, monthly and weekly stats
-        self.timeStamp = datetime.now().timestamp()
+        self.timeStamp = int(datetime.now().timestamp())
         self.allTime += 1
         self.year += 1
         self.month += 1
@@ -26,7 +26,7 @@ class UserInfo:
 
     def dailyCheck(self):  #reset the daily
         if self.postedToday():
-            print(self.userName + " posted today!")
+            main.todaysPosters.append(self.userName)
             return
         else:
             self.takeFromStreak()
