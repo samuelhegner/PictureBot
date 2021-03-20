@@ -198,9 +198,6 @@ def getAllTime(user):
 #========================================================
 @bot.event
 async def on_ready():
-    await announceWeekWinner()
-    await announceMonthWinner()
-    await announceYearWinner()
     print("Bot is ready")
 
 
