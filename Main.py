@@ -2,6 +2,7 @@ import os
 import discord
 import json
 import asyncio
+import base64
 
 from dotenv import load_dotenv
 from replit import db
@@ -15,9 +16,11 @@ from datetime import date, datetime, timedelta, time
 #========================================================
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('GUILD_TOKEN')
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='&')
+
 #========================================================
 # Global field Setup
 #========================================================
@@ -107,7 +110,7 @@ async def showWeeklyRanking(ctx):
     for key in keys:
         user = getUser(key)
         posters.append({"User": user.userName, "Week":user.week})
-    posters.sort(key=getWeek)
+    posters.sort(key=getWeek, reverse=True)
     
     message = "This weeks rankings so far:"
     index = 1;
@@ -124,7 +127,7 @@ async def showMonthlyRanking(ctx):
     for key in keys:
         user = getUser(key)
         posters.append({"User": user.userName, "Month":user.month})
-    posters.sort(key=getMonth)
+    posters.sort(key=getMonth, reverse=True)
 
     message = "This months rankings so far:"
     index = 1;
@@ -140,7 +143,7 @@ async def showYearlyRanking(ctx):
     for key in keys:
         user = getUser(key)
         posters.append({"User": user.userName, "Year":user.year})
-    posters.sort(key=getYear)
+    posters.sort(key=getYear, reverse=True)
 
     message = "This years rankings so far:"
     index = 1;
@@ -156,7 +159,7 @@ async def showAllTimeRanking(ctx):
     for key in keys:
         user = getUser(key)
         posters.append({"User": user.userName, "AllTime": user.allTime})
-    posters.sort(key=getAllTime)
+    posters.sort(key=getAllTime, reverse=True)
 
     message = "All time rankings are:"
     index = 1;
@@ -185,6 +188,9 @@ def getAllTime(user):
 #========================================================
 @bot.event
 async def on_ready():
+    await announceWeekWinner()
+    await announceMonthWinner()
+    await announceYearWinner()
     print("Bot is ready")
 
 
@@ -232,15 +238,71 @@ async def handlePicutrePost(message):
             userInfo.addPost()
             userJSON = json.dumps(userInfo.__dict__)
             db[author.name] = userJSON
-            print(userJSON)  
+            await changeServerIcon(message)
+            await author.create_dm()
+            await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
     else:
         userInfo = UserInfo(author.name, int(datetime.now().timestamp()), 0, 0, 0, 0, 0)
         userInfo.addPost()
         userJSON = json.dumps(userInfo.__dict__) 
         db[author.name] = userJSON
-        print(userJSON)
+        await changeServerIcon(message)
         await author.create_dm()
         await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
+
+async def changeServerIcon(message):
+    for guild in bot.guilds:
+        server = guild
+        file = await message.attachments[0].read()
+        await server.edit(icon=file)
+
+async def announceWeekWinner():
+    if len(db.keys()) == 0:
+        return
+
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Week": user.week})
+    posters.sort(key=getWeek, reverse=True)
+
+    message = "This weeks winner: {} with {} posts! Keep up the good work! 🎉📷🏆".format(posters[0].get("User"), posters[0].get("Week"))
+    for guild in bot.guilds:
+        channel = guild.get_channel(821781619106381874)
+        await channel.send(message)
+
+async def announceMonthWinner():
+    if len(db.keys()) == 0:
+        return
+
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Month": user.month})
+    posters.sort(key=getMonth, reverse=True)
+
+    message = "This months winner: {} with {} posts! Well done!🎉🎉📷🖼️🏆🏆".format(posters[0].get("User"), posters[0].get("Month"))
+    for guild in bot.guilds:
+        channel = guild.get_channel(821781619106381874)
+        await channel.send(message)
+
+async def announceYearWinner():
+    if len(db.keys()) == 0:
+        return
+        
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Year": user.year})
+    posters.sort(key=getYear, reverse=True)
+
+    message = "This years winner: {} with {} posts! Great job!!! 🎉🎉🎉📷🖼️🏆🏆🏆".format(posters[0].get("User"), posters[0].get("Year"))
+    for guild in bot.guilds:
+        channel = guild.get_channel(821781619106381874)
+        await channel.send(message)
 
 
 async def warn_user_pictures_only(author):
@@ -286,11 +348,16 @@ async def before():
     print("Finished waiting")
 
 async def checkLeaderboardReset():
-    now = datetime.now
-    
-    date.today().weekday() == 0:
-        pass
-
+    now = date.today()
+    if checkIfFirstDayOfWeek():
+        await announceWeekWinner()
+        await clearWeeklyLeaderBoard()
+    if checkIfFirstDayOfMonth(now):
+        await announceMonthWinner()
+        await clearMonthlyLeaderBoard()
+    if checkIfFirstDayOfyear(now):
+        await announceYearWinner()
+        await clearYearlyLeaderBoard()
 
 async def announceDailyPosters():
     message = "Todays posters: "
@@ -300,6 +367,51 @@ async def announceDailyPosters():
     channel = bot.get_channel(821781619106381874)
     await channel.send(message)
     todaysPosters.clear()
+
+#========================================================
+# Reset LeaderBoard Events
+#========================================================
+async def clearWeeklyLeaderBoard():
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        user.resetWeeklyStats()
+
+
+async def clearMonthlyLeaderBoard():
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        user.resetMonthlyStats()
+
+async def clearYearlyLeaderBoard():
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        user.resetYearlyStats()
+
+#========================================================
+# Date Event Checkers
+#========================================================
+def checkIfFirstDayOfWeek():
+    if date.today().weekday() == 0:
+        print("New Week")
+        return True
+    return False
+
+
+def checkIfFirstDayOfMonth(date):
+    if date.day == 1:
+        print("New Month")
+        return True
+    return False
+
+def checkIfFirstDayOfyear(date):
+    if date.day == 1 and date.month == 1:
+        print("New Year")
+        return True
+    return False
+
 
 called_once_a_day.start()
 keep_alive()

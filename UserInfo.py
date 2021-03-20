@@ -36,6 +36,12 @@ class UserInfo:
 
     def resetWeeklyStats(self):
         self.week = 0
+    
+    def resetMonthlyStats(self):
+        self.month = 0
+
+    def resetYearlyStats(self):
+        self.year = 0
 
 
     def addToStreak(self):
