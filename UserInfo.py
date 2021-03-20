@@ -26,7 +26,7 @@ class UserInfo:
 
     def dailyCheck(self):  #reset the daily
         if self.postedToday():
-            main.todaysPosters.append(self.userName)
+            self.timeStamp = 0
             return
         else:
             self.takeFromStreak()

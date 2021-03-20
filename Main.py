@@ -1,4 +1,3 @@
-# bot.py
 import os
 import discord
 import json
@@ -9,31 +8,181 @@ from replit import db
 from keep_alive import keep_alive
 from UserInfo import UserInfo
 from discord.ext import commands, tasks
-from datetime import datetime, timedelta, time
+from datetime import date, datetime, timedelta, time
 
+#========================================================
+# Bot Setup
+#========================================================
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-
 intents = discord.Intents.default()
 intents.members = True
-
 bot = commands.Bot(command_prefix='&')
-
-pic_ext = ['.jpg','.png','.jpeg', '.gif']
-
+#========================================================
+# Global field Setup
+#========================================================
+pic_ext = ['.jpg','.png','.jpeg', '.gif', '.PNG']
 todaysPosters = []
+#========================================================
+# Database Functions
+#========================================================
+def getUser(userKey):
+    userJsonFromDB = json.loads(db[userKey])
+    return UserInfo(**userJsonFromDB)
+
+def clearDB():
+    keys = db.keys()
+    for key in keys:
+        del db[key]
+        
+
+def printDB():
+    print("-----------------------------------------------------")
+    keys = db.keys()
+    for key in keys:
+        userJsonFromDB = json.loads(db[key])
+        userInfo = UserInfo(**userJsonFromDB)
+        userInfo.printUserInfo()
+        print("-----------------------------------------------------")
+
+#========================================================
+# Bot Commands
+#========================================================
+@bot.command(name="howTo")
+async def sendHelpPM(ctx):
+    author = ctx.author
+    header = "DailyPictureBot Help Guide:\n"
+    howToUse = "\n    Post a daily Picture in the daily-pictures chat. \n    The bot will track your posting and keep track of your stats.\n    Compete on weekly, monthly and yearly leaderboards.\n    You can only post one picture a day, with the reset happening at midnight every night\n \n"
+    commands = "\n    Bot Commands:\n        &howTo - get this reply\n        &me - post your stats\n        &week - show this weeks leaderboard\n        &month - show this months leaderboard\n        &year - show this years leaderboard\n        &total - show the all time leaderboard\n        &streak - get you streak\n        &today - Get the people who have posted today"
+    message = header + howToUse + commands
+    await author.create_dm()
+    await author.dm_channel.send(message)
 
 @bot.command(name="me")
 async def showIndividualStats(ctx):
     if ctx.author.name in db.keys():
-        userJsonFromDB = json.loads(db[ctx.author.name])
-        userInfo = UserInfo(**userJsonFromDB)
-
-        message = "User: {}\nLast Post: {}\nAll-time Posts: {}\nPosts this year: {}\nPosts this month: {}\nPosts this week: {}\nYour streak: {} days".format(userInfo.userName, datetime.fromtimestamp(userInfo.timeStamp).strftime('%H:%M:%S on %d-%m-%Y'), userInfo.allTime, userInfo.year, userInfo.month, userInfo.week, userInfo.streak)
+        userInfo = getUser(ctx.author.name)
+        message = "User: {}\nAll-time Posts: {}\nPosts this year: {}\nPosts this month: {}\nPosts this week: {}\nYour streak: {} days".format(userInfo.userName,userInfo.allTime, userInfo.year, userInfo.month, userInfo.week, userInfo.streak)
     else:
         message = "You are yet to post a picture. Now is your chance :smiley:"
     await ctx.send(message)
 
+@bot.command(name="streak")
+async def showPersonalStreak(ctx):
+    if ctx.author.name in db.keys():
+        userInfo = getUser(ctx.author.name)
+        streak = userInfo.streak
+
+        if streak < 0: #cold streak
+            message = "You are on a {} day cold streak 🧊".format(streak)
+            await ctx.send(message)
+        else:
+            message = "You are on a {} day hot streak 🔥".format(streak)
+            await ctx.send(message)
+    else:
+        message = "You are yet to post a picture. Now is your chance :smiley:"
+        await ctx.send(message)
+
+@bot.command(name="today")
+async def showDailyPosters(ctx):
+    postersSoFar = []
+    
+    keys = db.keys()
+    for key in keys:
+        userInfo = getUser(key)
+        if userInfo.postedToday():
+            postersSoFar.append(userInfo.userName)
+
+    message = "Todays posters so far: "
+    for user in postersSoFar:
+        message += "\n" + str(user)
+
+    await ctx.send(message)
+
+@bot.command(name="week")
+async def showWeeklyRanking(ctx): 
+    posters = []
+
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Week":user.week})
+    posters.sort(key=getWeek)
+    
+    message = "This weeks rankings so far:"
+    index = 1;
+    for poster in posters:
+        message += "\n{}. {} with {}".format(index, poster.get("User"), poster.get("Week"))
+        index += 1
+    
+    await ctx.send(message)
+
+@bot.command(name="month")
+async def showMonthlyRanking(ctx): 
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Month":user.month})
+    posters.sort(key=getMonth)
+
+    message = "This months rankings so far:"
+    index = 1;
+    for poster in posters:
+        message += "\n{}. {} with {}".format(index, poster.get("User"), poster.get("Month"))
+        index += 1
+    await ctx.send(message)
+
+@bot.command(name="year")
+async def showYearlyRanking(ctx): 
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "Year":user.year})
+    posters.sort(key=getYear)
+
+    message = "This years rankings so far:"
+    index = 1;
+    for poster in posters:
+        message += "\n{}. {} with {}".format(index, poster.get("User"), poster.get("Year"))
+        index += 1
+    await ctx.send(message)
+
+@bot.command(name="total")
+async def showAllTimeRanking(ctx): 
+    posters = []
+    keys = db.keys()
+    for key in keys:
+        user = getUser(key)
+        posters.append({"User": user.userName, "AllTime": user.allTime})
+    posters.sort(key=getAllTime)
+
+    message = "All time rankings are:"
+    index = 1;
+    for poster in posters:
+        message += "\n{}. {} with {}".format(index, poster.get("User"), poster.get("AllTime"))
+        index += 1
+    await ctx.send(message)
+
+#========================================================
+# Sorting Helper Functions
+#========================================================
+def getWeek(user):
+    return user.get('Week')
+
+def getMonth(user):
+    return user.get('Month')
+
+def getYear(user):
+    return user.get('Year')
+
+def getAllTime(user):
+    return user.get('AllTime')
+
+#========================================================
+# Bot Events
+#========================================================
 @bot.event
 async def on_ready():
     print("Bot is ready")
@@ -116,16 +265,15 @@ async def warn_user_ext_only(author):
 async def called_once_a_day():
     keys = db.keys()
     for key in keys:
-        userJsonFromDB = json.loads(db[key])
-        userInfo = UserInfo(**userJsonFromDB)
+        userInfo = getUser(key)
         if userInfo.postedToday():
             todaysPosters.append(userInfo.userName)
         userInfo.dailyCheck()
         print("Checked: " + userInfo.userName)
         userJSON = json.dumps(userInfo.__dict__)
         db[key] = userJSON
-    
     await announceDailyPosters()
+    await checkLeaderboardReset()
     print("Reset Daily Stats")
         
 
@@ -137,31 +285,21 @@ async def before():
     await asyncio.sleep(secondsUntilMidnight)
     print("Finished waiting")
 
+async def checkLeaderboardReset():
+    now = datetime.now
+    
+    date.today().weekday() == 0:
+        pass
 
-def clearDB():
-    keys = db.keys()
-    for key in keys:
-        del db[key]
-        
-
-def printDB():
-    print("-----------------------------------------------------")
-    keys = db.keys()
-    for key in keys:
-        userJsonFromDB = json.loads(db[key])
-        userInfo = UserInfo(**userJsonFromDB)
-        userInfo.printUserInfo()
-        print("-----------------------------------------------------")
 
 async def announceDailyPosters():
     message = "Todays posters: "
     for user in todaysPosters:
-        message += str(user) + ", "
+        message += "\n" + str(user)
     
     channel = bot.get_channel(821781619106381874)
     await channel.send(message)
     todaysPosters.clear()
-
 
 called_once_a_day.start()
 keep_alive()
