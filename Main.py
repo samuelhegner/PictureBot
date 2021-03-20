@@ -51,6 +51,8 @@ def printDB():
 #========================================================
 # Bot Commands
 #========================================================
+
+#Send a help message to author
 @bot.command(name="howTo")
 async def sendHelpPM(ctx):
     author = ctx.author
@@ -61,6 +63,7 @@ async def sendHelpPM(ctx):
     await author.create_dm()
     await author.dm_channel.send(message)
 
+#Show all info
 @bot.command(name="me")
 async def showIndividualStats(ctx):
     if ctx.author.name in db.keys():
@@ -70,6 +73,7 @@ async def showIndividualStats(ctx):
         message = "You are yet to post a picture. Now is your chance :smiley:"
     await ctx.send(message)
 
+#Display your current streak
 @bot.command(name="streak")
 async def showPersonalStreak(ctx):
     if ctx.author.name in db.keys():
@@ -86,6 +90,7 @@ async def showPersonalStreak(ctx):
         message = "You are yet to post a picture. Now is your chance :smiley:"
         await ctx.send(message)
 
+#Get people who posted today
 @bot.command(name="today")
 async def showDailyPosters(ctx):
     postersSoFar = []
@@ -102,6 +107,8 @@ async def showDailyPosters(ctx):
 
     await ctx.send(message)
 
+
+#Get week leaderboard
 @bot.command(name="week")
 async def showWeeklyRanking(ctx): 
     posters = []
@@ -120,6 +127,7 @@ async def showWeeklyRanking(ctx):
     
     await ctx.send(message)
 
+#Get month leaderboard
 @bot.command(name="month")
 async def showMonthlyRanking(ctx): 
     posters = []
@@ -136,6 +144,7 @@ async def showMonthlyRanking(ctx):
         index += 1
     await ctx.send(message)
 
+#Get year leaderboard
 @bot.command(name="year")
 async def showYearlyRanking(ctx): 
     posters = []
@@ -152,6 +161,7 @@ async def showYearlyRanking(ctx):
         index += 1
     await ctx.send(message)
 
+#Get all time leaderboard
 @bot.command(name="total")
 async def showAllTimeRanking(ctx): 
     posters = []
@@ -208,6 +218,12 @@ async def on_message(message):
 
     await check_message(message)
 
+
+#========================================================
+# Message Checking functions
+#========================================================   
+
+#Check message to see if a picture was posted
 async def check_message(message):
     if len(message.attachments) != 1:
         await warn_user_pictures_only(message.author)
@@ -224,6 +240,7 @@ async def check_message(message):
     await warn_user_ext_only(message.author)
     await message.delete()
 
+# handle a picture post
 async def handlePicutrePost(message):
     author = message.author
 
@@ -250,12 +267,17 @@ async def handlePicutrePost(message):
         await author.create_dm()
         await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
 
+# change server icon to new picture (not gifs)
 async def changeServerIcon(message):
     for guild in bot.guilds:
         server = guild
         file = await message.attachments[0].read()
         await server.edit(icon=file)
 
+
+#========================================================
+# Announcements functions
+#========================================================
 async def announceWeekWinner():
     if len(db.keys()) == 0:
         return
@@ -304,16 +326,16 @@ async def announceYearWinner():
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
 
-
+#========================================================
+# Warning functions
+#========================================================
 async def warn_user_pictures_only(author):
     await author.create_dm()
     await author.dm_channel.send("Please post pictures only!")
 
-
 async def warn_user_daily_post(author):
     await author.create_dm()
     await author.dm_channel.send("Please post only one picture a day!")
-
 
 async def warn_user_ext_only(author):
     await author.create_dm()
@@ -323,6 +345,9 @@ async def warn_user_ext_only(author):
     message += "only!"
     await author.dm_channel.send(message)
 
+#========================================================
+# Repeating Background functions
+#========================================================
 @tasks.loop(hours=24)
 async def called_once_a_day():
     keys = db.keys()
