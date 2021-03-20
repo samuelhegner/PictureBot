@@ -266,6 +266,20 @@ async def handlePicutrePost(message):
 
 # change server icon to new picture (not gifs)
 async def changeServerIcon(message):
+    file = message.attachments[0].filename
+
+    icon_ext = ['.jpg','.png','.jpeg', '.PNG']
+
+    allowFile = False;
+
+    for ext in pic_ext:
+        if file.endswith(ext):
+            allowFile = True
+            return
+
+    if allowFile == False:
+        return
+
     for guild in bot.guilds:
         server = guild
         file = await message.attachments[0].read()
