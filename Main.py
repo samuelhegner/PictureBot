@@ -268,7 +268,7 @@ async def handlePicutrePost(message):
 async def changeServerIcon(message):
     file = message.attachments[0].filename
 
-    icon_ext = ['.jpg','.png','.jpeg', '.PNG']
+    icon_ext = ['.jpg','.png']
 
     allowFile = False;
 
