@@ -400,6 +400,7 @@ async def before():
     now = datetime.now()
     midnight = datetime.combine(now + timedelta(days=1), time())
     secondsUntilMidnight = (midnight - now).seconds
+    secondsUntilMidnight += 60
     await asyncio.sleep(secondsUntilMidnight)
     print("Finished waiting")
 
@@ -468,7 +469,9 @@ def checkIfFirstDayOfyear(date):
         return True
     return False
 
-
+#========================================================
+# Run Bot
+#========================================================
 called_once_a_day.start()
 keep_alive()
 bot.run(TOKEN)
