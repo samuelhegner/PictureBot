@@ -24,7 +24,7 @@ bot = commands.Bot(command_prefix='&')
 #========================================================
 # Global field Setup
 #========================================================
-pic_ext = ['.jpg','.png','.jpeg', '.gif', '.PNG']
+pic_ext = ['.png', '.gif', '.jpeg', '.jpg', '.jpeg', '.jpe' ,'.jif', '.jfif', '.jfi']
 todaysPosters = []
 #========================================================
 # Database Functions
@@ -227,7 +227,7 @@ async def check_message(message):
         await message.delete()
         return
     
-    file = message.attachments[0].filename
+    file = message.attachments[0].filename.lower()
 
     for ext in pic_ext:
         if file.endswith(ext):
@@ -266,16 +266,15 @@ async def handlePicutrePost(message):
 
 # change server icon to new picture (not gifs)
 async def changeServerIcon(message):
-    file = message.attachments[0].filename
+    file = message.attachments[0].filename.lower()
 
-    icon_ext = ['.jpg','.png']
+    icon_ext = ['.png', '.jpeg', '.jpg', '.jpeg', '.jpe' ,'.jif', '.jfif', '.jfi']
 
     allowFile = False;
 
-    for ext in pic_ext:
+    for ext in icon_ext:
         if file.endswith(ext):
             allowFile = True
-            return
 
     if allowFile == False:
         return
@@ -300,7 +299,16 @@ async def announceWeekWinner():
         posters.append({"User": user.userName, "Week": user.week})
     posters.sort(key=getWeek, reverse=True)
 
-    message = "This weeks winner: {} with {} posts! Keep up the good work! 🎉📷🏆".format(posters[0].get("User"), posters[0].get("Week"))
+    highestScore = posters[0].get("Week");
+    userString = ""
+
+
+    for poster in posters:
+        if poster.get("Week") == highestScore:
+            userString += poster.get("User") + " "
+
+
+    message = "This weeks winner: {} with {} posts! Keep up the good work! 🎉📷🏆".format(userString, posters[0].get("Week"))
     for guild in bot.guilds:
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
@@ -316,7 +324,13 @@ async def announceMonthWinner():
         posters.append({"User": user.userName, "Month": user.month})
     posters.sort(key=getMonth, reverse=True)
 
-    message = "This months winner: {} with {} posts! Well done!🎉🎉📷🖼️🏆🏆".format(posters[0].get("User"), posters[0].get("Month"))
+    highestScore = posters[0].get("Month");
+    userString = ""
+    for poster in posters:
+        if poster.get("Month") == highestScore:
+            userString += poster.get("User") + " "
+
+    message = "This months winner: {} with {} posts! Well done!🎉🎉📷🖼️🏆🏆".format(userString, posters[0].get("Month"))
     for guild in bot.guilds:
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
@@ -332,7 +346,13 @@ async def announceYearWinner():
         posters.append({"User": user.userName, "Year": user.year})
     posters.sort(key=getYear, reverse=True)
 
-    message = "This years winner: {} with {} posts! Great job!!! 🎉🎉🎉📷🖼️🏆🏆🏆".format(posters[0].get("User"), posters[0].get("Year"))
+    highestScore = posters[0].get("Year");
+    userString = ""
+    for poster in posters:
+        if poster.get("Year") == highestScore:
+            userString += poster.get("User") + " "
+
+    message = "This years winner: {} with {} posts! Great job!!! 🎉🎉🎉📷🖼️🏆🏆🏆".format(userString, posters[0].get("Year"))
     for guild in bot.guilds:
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
