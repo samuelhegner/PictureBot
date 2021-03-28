@@ -2,7 +2,6 @@ import os
 import discord
 import json
 import asyncio
-import base64
 
 from dotenv import load_dotenv
 from replit import db
@@ -47,6 +46,26 @@ def printDB():
         userInfo = UserInfo(**userJsonFromDB)
         userInfo.printUserInfo()
         print("-----------------------------------------------------")
+
+#========================================================
+# Manual Fixing
+#========================================================
+#keys = db.keys()
+#for key in keys:
+#    user = getUser(key)
+#    user.week = user.week -1
+#    userJSON = json.dumps(user.__dict__)
+#    user.printUserInfo()
+#    db[key] = userJSON
+
+#anna = getUser("bananana")
+#anna.allTime = 1
+#anna.year = 1
+#anna.month =1
+#anna.week = 1
+#anna.streak = -1
+#userJSON = json.dumps(anna.__dict__)
+#db["KingKickass"] = userJSON
 
 #========================================================
 # Bot Commands
@@ -302,16 +321,16 @@ async def announceWeekWinner():
     highestScore = posters[0].get("Week");
     userString = ""
 
-
     for poster in posters:
         if poster.get("Week") == highestScore:
             userString += poster.get("User") + " "
-
 
     message = "This weeks winner: {} with {} posts! Keep up the good work! 🎉📷🏆".format(userString, posters[0].get("Week"))
     for guild in bot.guilds:
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
+
+
 
 async def announceMonthWinner():
     if len(db.keys()) == 0:
@@ -334,6 +353,8 @@ async def announceMonthWinner():
     for guild in bot.guilds:
         channel = guild.get_channel(821781619106381874)
         await channel.send(message)
+
+
 
 async def announceYearWinner():
     if len(db.keys()) == 0:
@@ -433,6 +454,8 @@ async def clearWeeklyLeaderBoard():
     for key in keys:
         user = getUser(key)
         user.resetWeeklyStats()
+        userJSON = json.dumps(user.__dict__)
+        db[key] = userJSON;
 
 
 async def clearMonthlyLeaderBoard():
@@ -440,12 +463,16 @@ async def clearMonthlyLeaderBoard():
     for key in keys:
         user = getUser(key)
         user.resetMonthlyStats()
+        userJSON = json.dumps(user.__dict__)
+        db[key] = userJSON;
 
 async def clearYearlyLeaderBoard():
     keys = db.keys()
     for key in keys:
         user = getUser(key)
         user.resetYearlyStats()
+        userJSON = json.dumps(user.__dict__)
+        db[key] = userJSON;
 
 #========================================================
 # Date Event Checkers

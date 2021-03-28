@@ -4,8 +4,7 @@ from datetime import datetime, timedelta, time
 
 class UserInfo:
 
-    def __init__(self, userName, timeStamp, allTime, year, month, week,
-                 streak):
+    def __init__(self, userName, timeStamp, allTime, year, month, week, streak):
         self.userName = userName
         self.timeStamp = timeStamp
         self.allTime = allTime
@@ -63,7 +62,7 @@ class UserInfo:
         print(self.userName + " posted " + str(postedHoursAgo) + " hours ago")
         print(postedHoursAgo < 24)
         return postedHoursAgo < 24
-
+    
 
     def printUserInfo(self):
         print(self.__dict__)
