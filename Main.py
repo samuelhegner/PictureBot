@@ -50,22 +50,29 @@ def printDB():
 #========================================================
 # Manual Fixing
 #========================================================
-#keys = db.keys()
-#for key in keys:
-#    user = getUser(key)
-#    user.week = user.week -1
-#    userJSON = json.dumps(user.__dict__)
-#    user.printUserInfo()
-#    db[key] = userJSON
+printDB()
+    
 
-#anna = getUser("bananana")
+#bakir = getUser("KingKickass");
+#bakir.allTime=8
+#bakir.year=8
+#bakir.month=8
+#bakir.week=7
+#bakir.streak=8
+#userJSON = json.dumps(bakir.__dict__)
+#db["KingKickass"] = userJSON
+
 #anna.allTime = 1
 #anna.year = 1
 #anna.month =1
 #anna.week = 1
 #anna.streak = -1
 #userJSON = json.dumps(anna.__dict__)
-#db["KingKickass"] = userJSON
+#db["bananana"] = userJSON
+
+#userInfo = UserInfo("bananana", int(datetime.now().timestamp()), 1, 1, 1, 1, -1)  
+#userJSON = json.dumps(userInfo.__dict__)
+#db["bananana"] = userJSON
 
 #========================================================
 # Bot Commands
