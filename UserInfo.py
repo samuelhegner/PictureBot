@@ -52,15 +52,12 @@ class UserInfo:
     def takeFromStreak(self):
         if self.streak > 0:
             self.streak = 0
-            print(self.userName + " lost the streak!")
         self.streak -= 1
 
 
     def postedToday(self):
         now = int(datetime.now().timestamp())
         postedHoursAgo =  int((now - self.timeStamp)/60/60)
-        print(self.userName + " posted " + str(postedHoursAgo) + " hours ago")
-        print(postedHoursAgo < 24)
         return postedHoursAgo < 24
     
 

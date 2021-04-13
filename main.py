@@ -50,17 +50,15 @@ def printDB():
 #========================================================
 # Manual Fixing
 #========================================================
-printDB()
-    
 
-#bakir = getUser("KingKickass");
-#bakir.allTime=8
-#bakir.year=8
-#bakir.month=8
-#bakir.week=7
-#bakir.streak=8
+#bakir = getUser("ＳＴＡＮＤＯ ＰＯＷＡＨ!");
+#bakir.allTime=17
+#bakir.year=17
+#bakir.month=6
+#bakir.week=2
+#bakir.streak=15
 #userJSON = json.dumps(bakir.__dict__)
-#db["KingKickass"] = userJSON
+#db["ＳＴＡＮＤＯ ＰＯＷＡＨ!"] = userJSON
 
 #anna.allTime = 1
 #anna.year = 1
@@ -73,6 +71,8 @@ printDB()
 #userInfo = UserInfo("bananana", int(datetime.now().timestamp()), 1, 1, 1, 1, -1)  
 #userJSON = json.dumps(userInfo.__dict__)
 #db["bananana"] = userJSON
+
+#printDB()
 
 #========================================================
 # Bot Commands
@@ -257,24 +257,24 @@ async def check_message(message):
 
     for ext in pic_ext:
         if file.endswith(ext):
-            await handlePicutrePost(message)
+            await handlePicturePost(message)
             return
     
     await warn_user_ext_only(message.author)
     await message.delete()
 
 # handle a picture post
-async def handlePicutrePost(message):
+async def handlePicturePost(message):
     author = message.author
 
     if author.name in db.keys():
         userJsonFromDB = json.loads(db[author.name])
         userInfo = UserInfo(**userJsonFromDB)
-        print(userInfo.postedToday())
         if (userInfo.postedToday() == True):
             await warn_user_daily_post(message.author)
             await message.delete()
         else:
+            print("\n" + author.name + " posted a picture\n")
             userInfo.addPost()
             userJSON = json.dumps(userInfo.__dict__)
             db[author.name] = userJSON
@@ -282,6 +282,7 @@ async def handlePicutrePost(message):
             await author.create_dm()
             await author.dm_channel.send("Great job! See you again tomorrow :smiley:")
     else:
+        print("\n" + author.name + " posted a picture\n")
         userInfo = UserInfo(author.name, int(datetime.now().timestamp()), 0, 0, 0, 0, 0)
         userInfo.addPost()
         userJSON = json.dumps(userInfo.__dict__) 
@@ -428,9 +429,12 @@ async def before():
     now = datetime.now()
     midnight = datetime.combine(now + timedelta(days=1), time())
     secondsUntilMidnight = (midnight - now).seconds
-    secondsUntilMidnight += 60
+    secondsUntilMidnight += 61
+    secondsUntilMidnight -= 3600
+
+    hoursToEvent = secondsUntilMidnight / 60 / 60
+    print("Hours till reset: " + str(hoursToEvent))
     await asyncio.sleep(secondsUntilMidnight)
-    print("Finished waiting")
 
 async def checkLeaderboardReset():
     now = date.today()
